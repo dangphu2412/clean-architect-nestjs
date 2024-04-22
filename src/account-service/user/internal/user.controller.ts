@@ -30,10 +30,6 @@ import {
   UserServiceToken,
 } from '../client';
 import { UpdateMemberPaidDto } from '../client/dtos/update-member-paid.dto';
-import {
-  MonthlyMoneyOperationService,
-  MonthlyMoneyOperationServiceToken,
-} from '../../../monthly-money';
 import { Page } from 'src/system/query-shape/types';
 import { FileInterceptor } from '../../../system/file';
 import { FileCreateUsersDto } from '../client/dtos/file-create-users.dto';
@@ -50,8 +46,6 @@ export class UserController {
     private readonly domainUser: DomainUser,
     @Inject(UserServiceToken)
     private readonly userService: UserService,
-    @Inject(MonthlyMoneyOperationServiceToken)
-    private readonly moneyOperationService: MonthlyMoneyOperationService,
   ) {}
 
   @Identified
@@ -110,20 +104,6 @@ export class UserController {
   @ApiCreatedResponse()
   async createUsers(@Body() createUsersDto: CreateUsersDto) {
     await this.domainUser.createUserUseCase(createUsersDto);
-  }
-
-  @CanAccessBy(AccessRights.EDIT_MEMBER_USER)
-  @Patch('/:id/monthly-moneys')
-  @ApiNoContentResponse()
-  updateMemberPaid(
-    @Param('id') userId: string,
-    @Body() { newPaid, operationFeeId }: UpdateMemberPaidDto,
-  ) {
-    return this.moneyOperationService.updateNewPaid({
-      userId,
-      newPaid,
-      operationFeeId,
-    });
   }
 
   @CanAccessBy(AccessRights.EDIT_MEMBER_USER)

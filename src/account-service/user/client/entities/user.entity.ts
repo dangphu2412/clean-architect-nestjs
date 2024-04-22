@@ -5,16 +5,11 @@ import {
   Entity,
   JoinTable,
   ManyToMany,
-  OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Role } from 'src/account-service/authorization/client';
 import { Exclude } from 'class-transformer';
-import { OperationFee } from '../../../../monthly-money';
-import { RecruitmentEvent } from '../../../../recruitment/domain/entities/recruitment-event.entity';
-import { EmployeeEventPoint } from '../../../../recruitment/domain/entities/employee-event-point.entity';
 
 @Entity({
   name: 'users',
@@ -92,24 +87,4 @@ export class User {
     },
   })
   roles?: Role[];
-
-  @ManyToMany(() => RecruitmentEvent, (event) => event.examiners)
-  @JoinTable({
-    name: 'recruitment_events_examiners',
-    joinColumn: {
-      name: 'examiner_id',
-      referencedColumnName: 'id',
-    },
-    inverseJoinColumn: {
-      name: 'recruitment_event_id',
-      referencedColumnName: 'id',
-    },
-  })
-  joinedRecruitEvents?: RecruitmentEvent[];
-
-  @OneToOne(() => OperationFee, (operationFee) => operationFee.user)
-  operationFee?: OperationFee;
-
-  @OneToMany(() => EmployeeEventPoint, (point) => point.author)
-  markedEventPoints: EmployeeEventPoint[];
 }

@@ -23,20 +23,13 @@ import {
 import { MyProfile, UserDetail } from '../../authentication';
 import { DigestService } from 'src/system/services';
 import { read, utils } from 'xlsx';
-import {
-  MonthlyMoneyConfigService,
-  MonthlyMoneyConfigServiceToken,
-  MonthlyMoneyOperationService,
-  MonthlyMoneyOperationServiceToken,
-} from '../../../monthly-money';
-import { CreateUserType, MemberType } from '../client/constants';
+import { CreateUserType } from '../client/constants';
 import { FileCreateUsersDto } from '../client/dtos/file-create-users.dto';
 import {
   RoleService,
   RoleServiceToken,
 } from 'src/account-service/authorization/client';
 import { Page, PageRequest } from 'src/system/query-shape/dto';
-import map from 'lodash/map';
 import { omit } from 'lodash';
 
 @Injectable()
@@ -46,10 +39,6 @@ export class DomainUserImpl implements DomainUser {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly digestService: DigestService,
-    @Inject(MonthlyMoneyConfigServiceToken)
-    private readonly monthlyConfigService: MonthlyMoneyConfigService,
-    @Inject(MonthlyMoneyOperationServiceToken)
-    private readonly moneyOperationService: MonthlyMoneyOperationService,
     @Inject(RoleServiceToken)
     private readonly roleService: RoleService,
   ) {}
@@ -103,9 +92,6 @@ export class DomainUserImpl implements DomainUser {
       case CreateUserType.NEWBIE:
         await this.create(dto as CreateUsersDto);
         break;
-      case CreateUserType.NEW_MEMBERS:
-        await this.createMember(dto as CreateUsersDto);
-        break;
       case CreateUserType.EXCEL:
         await this.createUsersByFile(dto as FileCreateUsersDto);
         break;
@@ -151,27 +137,6 @@ export class DomainUserImpl implements DomainUser {
     }
 
     return this.cacheDefaultPassword;
-  }
-
-  private async createMember({
-    email,
-    monthlyConfigId,
-  }: CreateUsersDto): Promise<void> {
-    const [monthlyConfig, user] = await Promise.all([
-      this.monthlyConfigService.findById(+monthlyConfigId),
-      this.userRepository.findOne({
-        where: { email },
-      }),
-    ]);
-
-    if (!user) {
-      throw new NotFoundUserException(email);
-    }
-
-    await this.moneyOperationService.createOperationFee({
-      monthlyConfigId: monthlyConfig.id,
-      userIds: [user.id],
-    });
   }
 
   private async createUsersByFile(dto: FileCreateUsersDto) {
@@ -240,38 +205,6 @@ export class DomainUserImpl implements DomainUser {
   ): Promise<Page<UserManagementView>> {
     const { search, joinedIn, memberType } = query;
     const { offset, size } = PageRequest.of(query);
-
-    if (memberType === MemberType.DEBTOR) {
-      const memberOperationFees =
-        await this.moneyOperationService.findDebtOperationFee({
-          size,
-          offset,
-        });
-
-      const userIds = map(memberOperationFees, 'userId');
-
-      if (!userIds.length) {
-        return Page.of({
-          query,
-          totalRecords: 0,
-          items: [],
-        });
-      }
-
-      const [items, totalRecords] =
-        await this.userRepository.findDebtorForManagement({
-          joinedIn,
-          userIds,
-          search,
-          memberType,
-        });
-
-      return Page.of({
-        query,
-        totalRecords,
-        items,
-      });
-    }
 
     const [items, totalRecords] =
       await this.userRepository.findUsersForManagement({
