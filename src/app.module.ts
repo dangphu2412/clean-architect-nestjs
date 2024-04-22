@@ -5,6 +5,7 @@ import { AuthModule } from './account-service/authentication/internal/auth.modul
 import { AuthorizationModule } from './account-service/authorization/internal/authorization.module';
 import { SystemModule } from './system/system.module';
 import { MenuModule } from './system/menu/internal/menu.module';
+import { PostsModule } from './posts/external-services/posts.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { MenuModule } from './system/menu/internal/menu.module';
     AuthorizationModule,
     SystemModule,
     MenuModule,
+    PostsModule,
   ],
 })
 export class AppModule {}
