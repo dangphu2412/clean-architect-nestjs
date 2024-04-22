@@ -1,0 +1,15 @@
+README.md
+.idea
+.eslintrc.js
+.prettierrc
+.husky
+.github
+.changeset
+.vscode
+**/node_modules
+**/dist
+**/.turbo
+**/.wireit
+**/.next
+**/styled-system
+**/storybook-static
